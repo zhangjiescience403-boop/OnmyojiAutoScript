@@ -24,9 +24,7 @@ class ScriptTask(GameUi, GeneralBattle, GeneralInvite, SwitchSoul, HuntAssets):
 
     def run(self):
         self.con_time = self.config.hunt.hunt_time
-        if not self.check_datetime():
-            # 设置下次运行时间 为今天的晚上七点钟
-            raise TaskEnd('Hunt')
+        self.check_datetime()
         con = self.config.hunt.hunt_config
         if con.kirin_group_team != '-1,-1' or con.netherworld_group_team != '-1,-1':
             self.ui_get_current_page()
@@ -40,7 +38,8 @@ class ScriptTask(GameUi, GeneralBattle, GeneralInvite, SwitchSoul, HuntAssets):
                     self.run_switch_soul(con.netherworld_group_team)
         self.ui_get_current_page()
         if self.kirin_day:
-            self.ui_goto(page_hunt_kirin)
+            # 狩猎战入口在町中是同一个按钮，先稳定进入狩猎战主界面再分流
+            self.ui_goto(page_hunt)
             self.kirin()
         else:
             self.ui_goto(page_hunt)
@@ -104,8 +103,18 @@ class ScriptTask(GameUi, GeneralBattle, GeneralInvite, SwitchSoul, HuntAssets):
 
     def kirin(self):
         logger.hr('kirin', 2)
+        enter_timer = Timer(40).start()
         while 1:
             self.screenshot()
+            if enter_timer.reached():
+                logger.warning('Enter kirin timeout, stop this run to avoid dead loop')
+                return
+            if self.appear(self.I_CHECK_MAIN):
+                if self.appear_then_click(self.I_MAIN_GOTO_TOWN, interval=1):
+                    continue
+            if self.appear(self.I_CHECK_TOWN):
+                if self.appear_then_click(self.I_TOWN_GOTO_HUNT, interval=1):
+                    continue
             if self.appear(self.I_PREPARE_HIGHLIGHT):
                 break
             if self.appear_then_click(self.I_UI_CONFIRM, interval=0.9):
@@ -122,8 +131,18 @@ class ScriptTask(GameUi, GeneralBattle, GeneralInvite, SwitchSoul, HuntAssets):
 
     def netherworld(self):
         logger.hr('netherworld', 2)
+        enter_timer = Timer(40).start()
         while 1:
             self.screenshot()
+            if enter_timer.reached():
+                logger.warning('Enter netherworld timeout, stop this run to avoid dead loop')
+                return
+            if self.appear(self.I_CHECK_MAIN):
+                if self.appear_then_click(self.I_MAIN_GOTO_TOWN, interval=1):
+                    continue
+            if self.appear(self.I_CHECK_TOWN):
+                if self.appear_then_click(self.I_TOWN_GOTO_HUNT, interval=1):
+                    continue
             if self.is_in_room(False):
                 self.screenshot()
                 if not self.appear(self.I_FIRE):
@@ -194,4 +213,3 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
-

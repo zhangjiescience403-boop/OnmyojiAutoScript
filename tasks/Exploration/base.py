@@ -380,6 +380,11 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         
         while 1:
             self.screenshot()
+
+            # 已经退回到庭院，直接结束退出流程
+            if self.appear(self.I_CHECK_MAIN):
+                logger.info('Already in main page, finish quit explore')
+                break
             
             #探索章节标题界面
             if self.appear(self.I_UI_BACK_RED) and self.appear(self.I_E_EXPLORATION_CLICK):
@@ -445,4 +450,3 @@ if __name__ == "__main__":
         time.sleep(0.2)
     from PIL import Image
     # Image.fromarray(t.device.image.astype(np.uint8)).show()
-

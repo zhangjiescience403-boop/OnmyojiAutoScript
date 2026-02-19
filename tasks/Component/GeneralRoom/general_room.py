@@ -105,14 +105,23 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
         在组队界面 退出组队的界面， 返回到庭院或者是你一开始进入的入口
         :return:
         """
+        # 单人任务结束时并不会进入组队页，直接返回给上层执行回主界面逻辑
+        if self.appear(self.I_CHECK_MAIN) or self.appear(self.I_CHECK_EXPLORATION):
+            return False
+
         if self.appear(self.I_CHECK_TEAM):
             logger.info('Exit team ui')
+            timeout = Timer(8).start()
             while 1:
                 self.screenshot()
                 if not self.appear(self.I_CHECK_TEAM):
                     return True
+                if timeout.reached():
+                    logger.warning('Exit team timeout')
+                    return False
                 if self.appear_then_click(self.I_GR_BACK_YELLOW, interval=0.5):
                     continue
+        return False
 
     def check_zones(self, name: str) -> bool:
         """
@@ -147,4 +156,3 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
                 self.device.click(x=pos[0] + randint(-5, 5), y=pos[1] + randint(-5, 5))
 
         return True
-
